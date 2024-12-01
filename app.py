@@ -40,6 +40,14 @@ def bowler_rec():
     print(response)
     return jsonify(response)
 
+@app.route('/api/batsmanvteams')
+def bats_vs_team():
+    khiladi = request.args.get('batsman')
+
+    response = ipl.batter_vs_teams(khiladi)
+    print(response)
+    return jsonify(response)
+
 app.run(debug=True,port=7000)
 
 

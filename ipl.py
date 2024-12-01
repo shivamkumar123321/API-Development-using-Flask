@@ -176,7 +176,60 @@ def bowling_stats(player):
     return result
 
 
+def batter_vs_teams(player):
+    # Datasets
+    ipl = pd.read_csv(
+        "https://docs.google.com/spreadsheets/d/e/2PACX-1vRy2DUdUbaKx_Co9F0FSnIlyS-8kp4aKv_I0-qzNeghiZHAI_hw94gKG22XTxNJHMFnFVKsO4xWOdIs/pub?gid=1655759976&single=true&output=csv")
+    ipl2 = pd.read_csv(
+        "https://docs.google.com/spreadsheets/d/e/2PACX-1vRu6cb6Pj8C9elJc5ubswjVTObommsITlNsFy5X0EiBY7S-lsHEUqx3g_M16r50Ytjc0XQCdGDyzE_Y/pub?output=csv")
 
+    # Merge datasets
+    data = pd.merge(ipl, ipl2, on='ID')
+
+    # unique teams
+    all_teams = data['Team1'].unique()
+
+    results = {}  # Store results
+
+    for team in all_teams:
+        # Filter data for
+        xyz = data[(data['batter'] == player) & ((data['Team2'] == team) | (data['Team1'] == team))]
+
+        # Total matches
+        Total_matches = xyz['ID'].nunique()
+
+        # Total runs
+        Total_runs = xyz['batsman_run'].sum()
+
+        # Fifties and Hundreds
+        gb = xyz.groupby('ID').sum()
+        fifties = gb[(gb['batsman_run'] >= 50) & (gb['batsman_run'] < 100)].shape[0]
+        hundreds = gb[gb['batsman_run'] >= 100].shape[0]
+
+        # Strike rate
+        valid_balls = xyz[xyz['extra_type'].isna()]  # Exclude extras
+        Total_balls = valid_balls.shape[0]
+        stk_rate = round((Total_runs / Total_balls) * 100, 2) if Total_balls > 0 else 0.0
+
+        # Average
+        out = xyz[xyz['player_out'] == player].shape[0]
+        bat_avg = round(Total_runs / out, 2) if out > 0 else Total_runs
+
+        # Max score
+        max_score = gb['batsman_run'].max() if not gb.empty else 0
+
+        # Add result to the dictionary
+        results[team] = {
+            'Total Matches': str(Total_matches),
+            'Total Runs': str(Total_runs),
+            'Fifties': str(fifties),
+            'Hundreds': str(hundreds),
+            'Strike Rate': str(stk_rate),
+            'Average': str(bat_avg),
+            'Max Score': str(max_score)
+        }
+
+    return results
 
 
 
