@@ -1,3 +1,5 @@
+from http.client import responses
+
 from flask import Flask,jsonify,request
 import ipl
 
@@ -29,6 +31,14 @@ def batsman_rec():
     print(response)
     return jsonify(response)
 
+
+@app.route('/api/bowler')
+def bowler_rec():
+    khiladi = request.args.get('player')
+
+    response = ipl.bowling_stats(khiladi)
+    print(response)
+    return jsonify(response)
 
 app.run(debug=True,port=7000)
 

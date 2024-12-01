@@ -124,6 +124,104 @@ def batsmanRecord(batsman):
     return response
 
 
+
+# API for bowling performance
+def bowling_stats(player):
+    ipl = pd.read_csv(
+        "https://docs.google.com/spreadsheets/d/e/2PACX-1vRy2DUdUbaKx_Co9F0FSnIlyS-8kp4aKv_I0-qzNeghiZHAI_hw94gKG22XTxNJHMFnFVKsO4xWOdIs/pub?gid=1655759976&single=true&output=csv")
+    ipl2 = pd.read_csv(
+        "https://docs.google.com/spreadsheets/d/e/2PACX-1vRu6cb6Pj8C9elJc5ubswjVTObommsITlNsFy5X0EiBY7S-lsHEUqx3g_M16r50Ytjc0XQCdGDyzE_Y/pub?output=csv")
+
+    # Total wickets taken
+    matches = ipl2[(ipl2.bowler == 'I Sharma') & (ipl2.isWicketDelivery == 1) & (ipl2.kind != 'run out')]
+    tot_wickets = matches.shape[0]
+
+    # Total matches played
+    df = ipl[ipl['Team1Players'].str.contains(player) | ipl['Team2Players'].str.contains(player)]
+    tot_matches = df.shape[0]
+
+    # Total overs,balls given
+    valid_balls = ipl2[ipl2['extra_type'].isna()]
+    balls_bowled = valid_balls[valid_balls['bowler'] == player].shape[0]
+    overs_bowled = balls_bowled // 6 + (balls_bowled % 6) / 10
+
+    # Total runs conceded
+    Total_runs_conceded = ipl2[ipl2['bowler'] == player]['total_run'].sum()
+
+    # Economy and average of bowler
+    economy = round(Total_runs_conceded / overs_bowled, 2)
+    average = round(Total_runs_conceded / tot_wickets, 2)
+
+    # Best performance of bowler
+    data = ipl2[ipl2['bowler'] == player]
+    wickets_taken = data.groupby('ID')['isWicketDelivery'].sum().sort_values(ascending=False).head(1).values[0]
+
+    runs_given = data.groupby(['ID', 'bowler'])[['isWicketDelivery', 'total_run']].sum() \
+        .sort_values(by=['isWicketDelivery', 'total_run'], ascending=[False, True]) \
+        .head(1).values[0][1]
+
+    best_performance = "{} / {}".format(wickets_taken, runs_given)
+
+    result = {
+        'Player': str(player),
+        'Total Matches': str(tot_matches),
+        'Total Wickets': str(tot_wickets),
+        'Total Overs': str(overs_bowled),
+        'Total Runs Conceded': str(Total_runs_conceded),
+        'Economy': str(economy),
+        'Average': str(average),
+        'Best Performance': str(best_performance)
+    }
+
+    return result
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # def batsman(player):
 #     ipl = pd.read_csv(
 #         "https://docs.google.com/spreadsheets/d/e/2PACX-1vRu6cb6Pj8C9elJc5ubswjVTObommsITlNsFy5X0EiBY7S-lsHEUqx3g_M16r50Ytjc0XQCdGDyzE_Y/pub?output=csv")
