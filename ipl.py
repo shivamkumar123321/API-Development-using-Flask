@@ -187,7 +187,7 @@ def batter_vs_teams(player):
     data = pd.merge(ipl, ipl2, on='ID')
 
     # unique teams
-    all_teams = data['Team1'].unique()
+    all_teams = (data['Team1']).unique()
 
     results = {}  # Store results
 
@@ -232,7 +232,81 @@ def batter_vs_teams(player):
     return results
 
 
+def bowler_vs_teams(bowler):
+    # Datasets
+    ipl = pd.read_csv(
+        "https://docs.google.com/spreadsheets/d/e/2PACX-1vRy2DUdUbaKx_Co9F0FSnIlyS-8kp4aKv_I0-qzNeghiZHAI_hw94gKG22XTxNJHMFnFVKsO4xWOdIs/pub?gid=1655759976&single=true&output=csv")
+    ipl2 = pd.read_csv(
+        "https://docs.google.com/spreadsheets/d/e/2PACX-1vRu6cb6Pj8C9elJc5ubswjVTObommsITlNsFy5X0EiBY7S-lsHEUqx3g_M16r50Ytjc0XQCdGDyzE_Y/pub?output=csv")
 
+    # Merge datasets
+    data = pd.merge(ipl, ipl2, on='ID')
+
+    # Unique teams from 'Team1' column
+    all_teams = data['Team1'].unique()
+
+    results = {}
+
+    for team in all_teams:
+        # Filter data for the specific bowler and team
+        xyz = data[(data['bowler'] == bowler) & ((data['Team2'] == team) | (data['Team1'] == team))]
+
+        # Total matches
+        Total_matches = xyz['ID'].nunique() if not xyz.empty else 0
+
+        # Total wickets taken by the bowler
+        matches = xyz[(xyz['bowler'] == bowler) & (xyz['isWicketDelivery'] == 1) & (xyz['kind'] != 'run out')]
+        tot_wickets = matches.shape[0] if not matches.empty else 0
+
+        # Total balls bowled (excluding extras)
+        valid_balls = xyz[xyz['extra_type'].isna()]
+        balls_bowled = valid_balls[valid_balls['bowler'] == bowler].shape[0]
+        overs_bowled = balls_bowled // 6 + (balls_bowled % 6) / 10  # Convert balls to overs
+
+        # Total runs conceded by the bowler
+        Total_runs_conceded = xyz[xyz['bowler'] == bowler]['total_run'].sum() if not xyz.empty else 0
+
+        # Economy and average
+        economy = round(Total_runs_conceded / overs_bowled, 2) if overs_bowled > 0 else 0.0
+        average = round(Total_runs_conceded / tot_wickets, 2) if tot_wickets > 0 else 0.0
+
+        # Best performance
+        data_bowler = xyz[xyz['bowler'] == bowler]
+
+        # Handle cases where there are no matches or no wickets
+        if not data_bowler.empty:
+
+            wickets_per_match = data_bowler.groupby('ID')['isWicketDelivery'].sum()
+            if not wickets_per_match.empty:
+                max_wickets = wickets_per_match.max()  # Best wickets in a match
+            else:
+                max_wickets = 0
+
+            # runs conceded
+            runs_per_match = data_bowler.groupby(['ID'])['total_run'].sum()
+            if not runs_per_match.empty:
+                min_runs = runs_per_match[wickets_per_match.idxmax()] if max_wickets > 0 else 0
+            else:
+                min_runs = 0
+
+            best_performance = f"{max_wickets} / {min_runs}" if max_wickets > 0 else "No Wickets Taken"
+        else:
+            best_performance = "No Matches Played"
+
+        # Add result to the dictionary
+        results[team] = {
+            'Bowler': str(bowler),
+            'Team': str(team),
+            'Total Matches': str(Total_matches),
+            'Total Wickets': str(tot_wickets),
+            'Overs Bowled': str(overs_bowled),
+            'Total Runs Conceded': str(Total_runs_conceded),
+            'Economy': str(economy),
+            'Average': str(average),
+            'Best Performance': str(best_performance)
+        }
+
+    return results
 
 
 

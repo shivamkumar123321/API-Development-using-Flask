@@ -48,6 +48,14 @@ def bats_vs_team():
     print(response)
     return jsonify(response)
 
+@app.route('/api/bowlervteams')
+def bows_vs_team():
+    khiladi = request.args.get('bowler')
+
+    response = ipl.bowler_vs_teams(khiladi)
+    print(response)
+    return jsonify(response)
+
 app.run(debug=True,port=7000)
 
 
